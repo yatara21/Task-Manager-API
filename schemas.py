@@ -1,6 +1,6 @@
 from pydantic import BaseModel, field_validator, Field
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from models import TaskStatus, TaskPriority
 
 class TaskCreate(BaseModel):
@@ -19,7 +19,7 @@ class TaskCreate(BaseModel):
 
     @field_validator("due_date")
     def due_date_must_be_future(cls, v):
-        if v is not None and v <= datetime.utcnow():
+        if v is not None and v <= datetime.now(timezone.utc):
             raise ValueError("Due date must be in the future.")
         return v
 
@@ -39,7 +39,7 @@ class TaskUpdate(BaseModel):
 
     @field_validator("due_date")
     def due_date_must_be_future(cls, v):
-        if v is not None and v <= datetime.utcnow():
+        if v is not None and v <= datetime.now(timezone.utc):
             raise ValueError("Due date must be in the future.")
         return v
 
