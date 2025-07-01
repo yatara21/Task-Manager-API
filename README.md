@@ -1,6 +1,18 @@
 # Task Management API
 
-A FastAPI-based Task Management API for task tracking and management, using SQLModel, Pydantic, and SQLite. This project demonstrates modern Python API development, containerization, and deployment to the cloud.
+
+A FastAPI-based Task Management API using SQLModel, Pydantic, and SQLite. This project demonstrates modern Python API development, containerization, and deployment to the cloud.
+
+## 🚀 Live Demo
+
+**Task Manager API is now live on Azure!**
+
+🌐 **API Base URL:** [http://buguard-backend-task.westeurope.azurecontainer.io:8000](http://buguard-backend-task.westeurope.azurecontainer.io:8000)  
+📚 **Interactive Docs:** [http://buguard-backend-task.westeurope.azurecontainer.io:8000/docs](http://buguard-backend-task.westeurope.azurecontainer.io:8000/docs)
+
+> ⏰ **Note:** This URL will be accessible only for 48 hours for testing purposes and then will not be available.
+
+Try it out by visiting the API documentation link above!
 
 ---
 
@@ -17,7 +29,10 @@ A FastAPI-based Task Management API for task tracking and management, using SQLM
 
 ## Requirements
 - Python 3.9+
-- See `requirements.txt` for dependencies
+- FastAPI
+- uvicorn
+- sqlmodel
+- pydantic
 - (For Docker) Docker Engine installed
 
 ---
@@ -26,7 +41,7 @@ A FastAPI-based Task Management API for task tracking and management, using SQLM
 
 ### 1. Clone the Repository
 ```bash
-git clone <REPO_URL>
+git clone https://github.com/yatara21/Task-Manager-API.git
 cd Task-Manager-API
 ```
 
@@ -42,8 +57,8 @@ pip install -r requirements.txt
 #### b. Start the Application
 ```bash
 python main.py
-# Or (recommended for production):
-uvicorn main:app --host 0.0.0.0 --port 8000
+# Or (recommended):
+python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 #### c. Access the API
@@ -67,21 +82,65 @@ docker run -d -p 8000:8000 --name task-manager-api task-manager-api
 - The app will be available at [http://localhost:8000](http://localhost:8000)
 - Swagger docs: [http://localhost:8000/docs](http://localhost:8000/docs)
 
-#### c. Image Size Optimization
-- Uses `python:3.11-alpine` for a minimal image (~115MB)
-- `.dockerignore` excludes unnecessary files (docs, tests, configs, etc.)
+
 
 ---
 
-### 4. Access via Azure Cloud (Deployed Version)
-If you want to use the cloud-hosted version, simply visit:
+### 4. Deploy to Azure Cloud
 
-```
-<AZURE_CLOUD_URL>
+#### Prerequisites
+Make sure you have the following installed:
+- [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
+- [Docker](https://docs.docker.com/get-docker/)
+- Git
+
+#### Step-by-Step Deployment
+
+**Step 1: Login to Azure**
+```bash
+az login
 ```
 
-- Replace `<AZURE_CLOUD_URL>` with the actual URL once available.
-- Swagger docs: `<AZURE_CLOUD_URL>/docs`
+**Step 2: Build Docker Image**
+```bash
+docker build -t task-mgr-api .
+```
+
+**Step 3: Create Resource Group**
+```bash
+az group create --name task-manager-rg --location westeurope
+```
+
+**Step 4: Deploy to Azure Container Instances**
+```bash
+az container create \
+    --resource-group task-manager-rg \
+    --name task-manager-api \
+    --image task-mgr-api:latest \
+    --os-type Linux \
+    --cpu 1 \
+    --memory 1.5 \
+    --port 8000 \
+    --dns-name-label task-manager-api-$(date +%s) \
+    
+```
+
+**Step 5: Get Deployment Information**
+```bash
+az container show --resource-group task-manager-rg --name task-manager-api --query "ipAddress.fqdn" --output tsv
+```
+
+
+**Available Endpoints:**
+- `GET /` - API information
+- `GET /health` - Health check
+- `GET /tasks` - Get all tasks (with filtering and pagination)
+- `POST /tasks` - Create a new task
+- `GET /tasks/{task_id}` - Get a specific task
+- `PUT /tasks/{task_id}` - Update a task
+- `DELETE /tasks/{task_id}` - Delete a task
+- `GET /tasks/status/{status}` - Get tasks by status
+- `GET /tasks/priority/{priority}` - Get tasks by priority
 
 ---
 
@@ -137,30 +196,46 @@ See Swagger UI for full details and try out endpoints interactively.
 - `database.py` - Database session and initialization
 - `routes.py` - All API endpoints
 - `requirements.txt` - Python dependencies
-- `README.md` - This file
+
 
 ---
 
-## Troubleshooting
-- **Port already in use:** Stop other services using port 8000 or change the port in the run command.
-- **Database not persisting:** The SQLite file (`tasks.db`) is created in the container. For persistent data, mount a volume.
-- **Docker build errors:** Ensure you have the latest Docker and a stable internet connection.
-- **Azure deployment issues:** Check logs and ensure environment variables and ports are set correctly.
+
+
+#### Container Registry Authentication
+If using Azure Container Registry, include registry credentials:
+```bash
+az container create \
+    --resource-group my-rg \
+    --name my-container \
+    --image myacr.azurecr.io/my-image \
+    --os-type Linux \
+    --registry-login-server myacr.azurecr.io \
+    --registry-username myusername \
+    --registry-password mypassword
+```
+> **Note:** Make sure to replace `myacr.azurecr.io`, `myusername`, and `mypassword` with your actual Azure Container Registry credentials.
+
 
 ---
 
-## Credits & Disclaimer
+## Credits & Disclaimer | Very Important!!
 
-This project was created as a learning exercise to explore FastAPI, modern Python API development, and DevOps best practices. The implementation was guided by a YouTube tutorial and supported by the Cursor AI editor, as FastAPI is a new framework for me.
+This repository was developed as part of a comprehensive backend assessment, showcasing modern API development practices and cloud deployment capabilities. As this was my first experience working with the FastAPI framework, I strategically leveraged multiple learning resources to accelerate development while ensuring code quality and best practices.
 
 **Learning Resources:**
-- [FastAPI Tutorial Playlist](https://www.youtube.com/playlist?list=PL-2EBeDYMIbTJrr9qaedn3K_5oe0l4krY)
+- [FastAPI Tutorial Playlist](https://www.youtube.com/playlist?list=PL-2EBeDYMIbTJrr9qaedn3K_5oe0l4krY) - Comprehensive video tutorials for framework fundamentals
+- Official FastAPI, SQLModel, and Pydantic documentation for accurate implementation
+- AI-assisted coding through Cursor AI editor for rapid development and code suggestions
 
 **Containerization & Deployment:**
-- The project includes a Dockerized setup for easy deployment and has been successfully deployed to Azure Cloud. The public URL will be provided as soon as it is available.
+- The project includes a Dockerized setup for easy deployment and has been successfully deployed to Azure Cloud.
 
-**Approach:**
-- My focus was on understanding requirements, consulting official documentation, and designing a clean, maintainable architecture. I prioritized best practices in structure, validation, and deployment, even as I learned the FastAPI framework itself.
+**Development Approach:**
+Given the short deadline, I focused on understanding the core requirements, project structure, and database communication patterns rather than writing code from scratch. My approach prioritized:
+- Thorough requirement analysis and architecture planning
+- Understanding how different modules interact and communicate
+- Leveraging existing documentation and tutorials for proven solutions
+- Using AI assistance to accelerate implementation while maintaining code quality
 
-**Note:**
-- This project demonstrates my ability to quickly learn and adapt to new technologies and tech stacks. My background in DevOps and cloud enables me to deliver robust solutions, even when working with unfamiliar frameworks or languages.
+This project demonstrates my ability to quickly adapt to new technology stacks and frameworks. I can efficiently familiarize myself with different tech stacks as project requirements demand, leveraging my DevOps background and rapid learning capabilities to deliver production-ready solutions regardless of the specific frameworks or languages involved.
